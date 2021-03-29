@@ -2,10 +2,14 @@ import 'package:expenses_app/widgets/chart.dart';
 import 'package:expenses_app/widgets/new_tranaction.dart';
 import 'package:expenses_app/widgets/transactions_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'models/transaction.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(MyApp());
 }
 
@@ -73,23 +77,25 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.title),
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: CircleAvatar(
-              radius: 45,
-              backgroundImage: NetworkImage(
-                  'https://scontent.fjed4-6.fna.fbcdn.net/v/t1.0-1/p320x320/70012026_1396145760559602_7724483374592557056_n.jpg?_nc_cat=106&ccb=1-3&_nc_sid=7206a8&_nc_ohc=ZfTABSbh5oAAX80rg8o&_nc_ht=scontent.fjed4-6.fna&tp=6&oh=38c2ae9332fdb5cb98dd76efbaa0c4a7&oe=6076D114'),
-            ),
-          ),
-          actions: [
-            IconButton(
-                icon: Icon(Icons.add),
-                onPressed: () => _showAddTransactionsSheet(context))
-          ],
+    final appBar = AppBar(
+      title: Text(widget.title),
+      leading: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: CircleAvatar(
+          radius: 45,
+          backgroundImage: NetworkImage(
+              'https://scontent.fjed4-6.fna.fbcdn.net/v/t1.0-1/p320x320/70012026_1396145760559602_7724483374592557056_n.jpg?_nc_cat=106&ccb=1-3&_nc_sid=7206a8&_nc_ohc=ZfTABSbh5oAAX80rg8o&_nc_ht=scontent.fjed4-6.fna&tp=6&oh=38c2ae9332fdb5cb98dd76efbaa0c4a7&oe=6076D114'),
         ),
+      ),
+      actions: [
+        IconButton(
+            icon: Icon(Icons.add),
+            onPressed: () => _showAddTransactionsSheet(context))
+      ],
+    );
+
+    return Scaffold(
+        appBar: appBar,
         floatingActionButton: FloatingActionButton(
           child: Icon(
             Icons.add,
@@ -101,26 +107,43 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Chart(_recentTransactions),
-            SizedBox(height: 10),
-            _userTransactions.isNotEmpty
-                ? Expanded(
-                    child:
-                        TransactionsList(_userTransactions, _removeTransaction))
-                : Center(
-                    child: Column(
-                      children: [
-                        Text('No Transactions',
-                            style: Theme.of(context).textTheme.headline6,),
-                        SizedBox(height: 10),
-                        Container(
-                            height: 200,
-                            width: 200,
-                            child: Image.asset(
-                                'assets/images/no_transactions.png'))
-                      ],
+            Container(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.3,
+                child: Chart(_recentTransactions)),
+            SizedBox(
+                height: (MediaQuery.of(context).size.height -
+                        appBar.preferredSize.height -
+                        MediaQuery.of(context).padding.top) *
+                    0.05),
+            Container(
+              height: (MediaQuery.of(context).size.height -
+                      appBar.preferredSize.height -
+                      MediaQuery.of(context).padding.top) *
+                  0.65,
+              child: _userTransactions.isNotEmpty
+                  ? Expanded(
+                      child: TransactionsList(
+                          _userTransactions, _removeTransaction))
+                  : Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            'No Transactions',
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                              height: 200,
+                              width: 200,
+                              child: Image.asset(
+                                  'assets/images/no_transactions.png'))
+                        ],
+                      ),
                     ),
-                  ),
+            ),
           ],
         ));
   }
