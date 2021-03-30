@@ -1,15 +1,13 @@
+import 'dart:io';
+
 import 'package:expenses_app/widgets/chart.dart';
 import 'package:expenses_app/widgets/new_tranaction.dart';
 import 'package:expenses_app/widgets/transactions_list.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'models/transaction.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
   runApp(MyApp());
 }
 
@@ -46,6 +44,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final List<Transaction> _userTransactions = [];
+  bool showChart = false;
 
   void _addNewTransaction(String title, String amount, DateTime date) {
     if (title.isEmpty || amount.isEmpty || date == null) {
@@ -77,6 +76,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    bool isLandscape = mediaQuery.orientation == Orientation.landscape;
+
     final appBar = AppBar(
       title: Text(widget.title),
       leading: Padding(
@@ -94,56 +96,61 @@ class _MyHomePageState extends State<MyHomePage> {
       ],
     );
 
+    final barPercentage = isLandscape ? 0.7 : 0.3;
+    final bodyPercentage = isLandscape ? 0.8 : 0.65;
+
+    final chartBar = Container(
+        height: (mediaQuery.size.height -
+                appBar.preferredSize.height -
+                mediaQuery.padding.top) *
+            barPercentage,
+        child: Chart(_recentTransactions));
+
+    final body = Container(
+        height: (mediaQuery.size.height -
+                appBar.preferredSize.height -
+                mediaQuery.padding.top) *
+            bodyPercentage,
+        child: TransactionsList(_userTransactions, _removeTransaction));
+
     return Scaffold(
         appBar: appBar,
-        floatingActionButton: FloatingActionButton(
-          child: Icon(
-            Icons.add,
-            color: Colors.white,
-          ),
-          onPressed: () => _showAddTransactionsSheet(context),
-        ),
+        floatingActionButton: Platform.isAndroid
+            ? FloatingActionButton(
+                child: Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+                onPressed: () => _showAddTransactionsSheet(context),
+              )
+            : Container(),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-                height: (MediaQuery.of(context).size.height -
-                        appBar.preferredSize.height -
-                        MediaQuery.of(context).padding.top) *
-                    0.3,
-                child: Chart(_recentTransactions)),
-            SizedBox(
-                height: (MediaQuery.of(context).size.height -
-                        appBar.preferredSize.height -
-                        MediaQuery.of(context).padding.top) *
-                    0.05),
-            Container(
-              height: (MediaQuery.of(context).size.height -
-                      appBar.preferredSize.height -
-                      MediaQuery.of(context).padding.top) *
-                  0.65,
-              child: _userTransactions.isNotEmpty
-                  ? Expanded(
-                      child: TransactionsList(
-                          _userTransactions, _removeTransaction))
-                  : Center(
-                      child: Column(
-                        children: [
-                          Text(
-                            'No Transactions',
-                            style: Theme.of(context).textTheme.headline6,
-                          ),
-                          SizedBox(height: 10),
-                          Container(
-                              height: 200,
-                              width: 200,
-                              child: Image.asset(
-                                  'assets/images/no_transactions.png'))
-                        ],
-                      ),
+            isLandscape
+                ? Container(
+                    height: (mediaQuery.size.height -
+                            appBar.preferredSize.height -
+                            mediaQuery.padding.top) *
+                        0.2,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text('Show Chart'),
+                        Switch.adaptive(
+                            value: showChart,
+                            onChanged: (value) {
+                              setState(() {
+                                showChart = value;
+                              });
+                            }),
+                      ],
                     ),
-            ),
+                  )
+                : Container(),
+            if (!isLandscape) chartBar,
+            showChart ? chartBar : body,
           ],
         ));
   }
