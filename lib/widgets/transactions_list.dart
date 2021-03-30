@@ -36,17 +36,19 @@ class TransactionsList extends StatelessWidget {
             itemBuilder: (context, index) {
               return Card(
                 elevation: 5,
-                margin: EdgeInsets.all(5),
+                margin: EdgeInsets.only(top: 5, bottom: 5, left: 10, right: 10),
                 child: ListTile(
                     leading: Container(
                       width: 60,
                       height: 60,
                       padding: EdgeInsets.all(5),
                       child: Center(
-                          child: Text(
-                        '\$${transactions[index].amout.toStringAsFixed(2)}',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold),
+                          child: FittedBox(
+                        child: Text(
+                          '\$${transactions[index].amout.toStringAsFixed(2)}',
+                          style: TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
                       )),
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
